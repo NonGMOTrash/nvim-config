@@ -14,7 +14,9 @@ vim.opt.list = true
 vim.opt.listchars = {space='·', tab='» '}
 
 vim.opt.breakindent = true
-vim.opt.wrap = true;
+vim.opt.wrap = true
+
+vim.opt.scrolloff = 5 
 
 vim.o.clipboard = "unnamed"
 
@@ -64,10 +66,6 @@ require("lazy").setup(
 		},
 		version = '^1.0.0', -- optional: only update when a new 1.x version is released
 	},
-	-- {
-	-- 	'nvim-lualine/lualine.nvim',
-	-- 	dependencies = { 'nvim-tree/nvim-web-devicons' }
-	-- },
 	{
 		'gukz/ftFT.nvim',
 		keys = { "f", "t", "F", "T" },
@@ -77,6 +75,28 @@ require("lazy").setup(
 		"williamboman/mason.nvim",
 		"williamboman/mason-lspconfig.nvim",
 		"neovim/nvim-lspconfig",
+	},
+	{
+		'wsdjeg/rooter.nvim',
+	},
+	{
+		-- Calls `require('slimline').setup({})`
+		"sschleemilch/slimline.nvim",
+		opts = {
+			spaces = {
+				components = "",
+				left = "",
+				right = "",
+			},
+			sep = {
+				hide = {
+					first = true,
+					last = true,
+				},
+				left = "",
+				right = "",
+			},
+		}
 	}
 }
 )
