@@ -9,16 +9,25 @@ vim.opt.incsearch = true
 vim.opt.smartindent = true
 vim.opt.tabstop = 3
 vim.opt.shiftwidth = 3
+vim.opt.breakindent = true
+vim.opt.wrap = true
+vim.opt.scrolloff = 10
 
 vim.opt.list = true
 vim.opt.listchars = {space='·', tab='» '}
 
-vim.opt.breakindent = true
-vim.opt.wrap = true
-
-vim.opt.scrolloff = 5 
-
 vim.o.clipboard = "unnamed"
+
+-- autocompletion
+
+vim.api.nvim_create_autocmd('LspAttach', {
+  callback = function(event)
+    local client = vim.lsp.get_client_by_id(event.data.client_id)
+    if client:supports_method('textDocument/completion') then
+      vim.lsp.completion.enable(true, client.id, event.buf, { autotrigger = true })
+    end
+  end,
+})
 
 -- lazy
 
@@ -46,7 +55,7 @@ require("lazy").setup(
 		lazy = false,
 		priority = 1000,
 		config = function()
-			vim.g.sonokai_enable_italic = false
+			vim.g.sonokai_enable_italic = true 
 			vim.g.sonokai_disable_italic_comment = true
 			vim.cmd.colorscheme('sonokai')
 		end
@@ -63,6 +72,7 @@ require("lazy").setup(
 			-- animation = true,
 			-- insert_at_start = true,
 			-- …etc.
+			auto_hide = 1
 		},
 		version = '^1.0.0', -- optional: only update when a new 1.x version is released
 	},
@@ -71,98 +81,50 @@ require("lazy").setup(
 		keys = { "f", "t", "F", "T" },
 		config = true
 	},
-	{ -- all lsp stuff
-		"williamboman/mason.nvim",
-		"williamboman/mason-lspconfig.nvim",
-		"neovim/nvim-lspconfig",
+	{ -- all lsp / completion stuff
+		"mason-org/mason.nvim", -- package manager for LSPs 
+		"mason-org/mason-lspconfig.nvim", -- mason to lsp bridget
+		"neovim/nvim-lspconfig", -- a bundle of good LSP configurations so i don't have to do it myself
+		"hrsh7th/nvim-cmp", -- completion engine
+		"hrsh7th/cmp-nvim-lsp", -- lsp completion source
 	},
 	{
 		'wsdjeg/rooter.nvim',
 	},
 	{
-		-- Calls `require('slimline').setup({})`
-		"sschleemilch/slimline.nvim",
-		opts = {
-			spaces = {
-				components = "",
-				left = "",
-				right = "",
-			},
-			sep = {
-				hide = {
-					first = true,
-					last = true,
-				},
-				left = "",
-				right = "",
-			},
-		}
+		'bluz71/nvim-linefly',
 	}
-}
-)
+})
 
--- barbar
+-- mason stuff
 
-vim.g.barbar_auto_setup = false -- disable auto-setup
+require("mason").setup({
+	-- log_level = vim.log.levels.DEBUG
+})
 
-require'barbar'.setup {
-	auto_hide = 1
-}
+require('mason-lspconfig').setup({
+	ensure_installed = {
+		"clangd"
+	},
+	automatic_enable = true, -- Mason-LSPConfig v2 auto-enables servers by default
+})
 
--- lualine
+-- cmp
+
+local cmp = require("cmp")
+cmp.setup({
+	mapping = cmp.mapping.preset.insert({
+		["<C-Space>"] = cmp.mapping.complete(),
+		["<CR>"] = cmp.mapping.confirm({ select = true }),
+	}),
+	sources = cmp.config.sources({
+		{ name = "nvim_lsp" },
+	}),
+})
+
+-- setup lspconfig with cmp capabilities
+-- local capabilities = require("cmp_nvim_lsp").default_capabilities()
 --
--- require('lualine').setup {
--- 	options = {
--- 		icons_enabled = true,
--- 		theme = 'horizon',
--- 		component_separators = { left = '', right = ''},
--- 		section_separators = { left = '', right = ''},
--- 		disabled_filetypes = {
--- 			statusline = {},
--- 			winbar = {},
--- 		},
--- 		ignore_focus = {},
--- 		always_divide_middle = true,
--- 		globalstatus = false,
--- 		refresh = {
--- 			statusline = 1000,
--- 			tabline = 1000,
--- 			winbar = 1000,
--- 		}
--- 	},
--- 	sections = {
--- 		lualine_a = {'mode'},
--- 		lualine_b = {'branch', 'diff', 'diagnostics'},
--- 		lualine_c = {'filename'},
--- 		lualine_x = {'encoding', 'fileformat', 'filetype'},
--- 		lualine_y = {'progress'},
--- 		lualine_z = {'location'}
--- 	},
--- 	inactive_sections = {
--- 		lualine_a = {},
--- 		lualine_b = {},
--- 		lualine_c = {'filename'},
--- 		lualine_x = {'location'},
--- 		lualine_y = {},
--- 		lualine_z = {}
--- 	},
--- 	tabline = {},
--- 	winbar = {},
--- 	inactive_winbar = {},
--- 	extensions = {}
--- }
-
--- mason
-
--- require("mason").setup()
--- require("mason-lspconfig").setup()
-
--- lspconfig
-
--- local lspconfig = require('lspconfig')
--- lspconfig.clangd.setup {
--- 	-- Server-specific settings. See `:help lspconfig-setup`
--- 	settings = {
---
--- 	},
--- }
+-- require("lspconfig").clangd.setup({
+-- 	capabilities = capabilities,
+-- })
